@@ -1,4 +1,4 @@
-# vscode-xreferee README
+# vscode-xreferee
 
 This is the README for your extension "vscode-xreferee". After writing up a brief description, we recommend including the following sections.
 

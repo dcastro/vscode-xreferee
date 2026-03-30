@@ -18,6 +18,7 @@ const LSP_VERSION_FILE_NAME = 'lsp-xreferee-version.txt';
 const EXTENSION_CONFIG_SECTION = 'xreferee';
 const SERVER_ARGS_SETTING_KEY = 'serverArgs';
 const octokitModulePromise = import('@octokit/rest');
+const stringArgvModulePromise = import('string-argv');
 
 let logChannel: vscode.OutputChannel | undefined;
 
@@ -35,7 +36,7 @@ export async function activate(
 
   // Resolve the language server executable before creating the client.
   let serverCommand: string;
-  const serverArgs = getConfiguredServerArgs();
+  const serverArgs = await getConfiguredServerArgs();
   try {
     logInfo('Resolving language server executable.');
     serverCommand = await resolveServerCommand(context);
@@ -81,27 +82,27 @@ export async function activate(
 /**
  * Reads user-configured extra command-line arguments for the language server.
  */
-function getConfiguredServerArgs(): string[] {
+async function getConfiguredServerArgs(): Promise<string[]> {
   const configuredValue = vscode.workspace
     .getConfiguration(EXTENSION_CONFIG_SECTION)
-    .get<unknown>(SERVER_ARGS_SETTING_KEY, []);
+    .get<unknown>(SERVER_ARGS_SETTING_KEY, '');
 
-  if (
-    Array.isArray(configuredValue) &&
-    configuredValue.every((value) => typeof value === 'string')
-  ) {
+  if (typeof configuredValue === 'string') {
+    const { parseArgsStringToArgv } = await stringArgvModulePromise;
+    const parsedArgs = parseArgsStringToArgv(configuredValue);
+
     logInfo(
-      `Configured ${SERVER_ARGS_SETTING_KEY}: ${JSON.stringify(configuredValue)}`,
+      `Configured ${SERVER_ARGS_SETTING_KEY}: ${JSON.stringify(parsedArgs)}`,
     );
-    return configuredValue;
+    return parsedArgs;
   }
 
   logError(
-    `Invalid setting '${EXTENSION_CONFIG_SECTION}.${SERVER_ARGS_SETTING_KEY}'. Expected an array of strings.`,
+    `Invalid setting '${EXTENSION_CONFIG_SECTION}.${SERVER_ARGS_SETTING_KEY}'. Expected a string.`,
     configuredValue,
   );
   void vscode.window.showWarningMessage(
-    `Invalid setting '${EXTENSION_CONFIG_SECTION}.${SERVER_ARGS_SETTING_KEY}'. Expected an array of strings.`,
+    `Invalid setting '${EXTENSION_CONFIG_SECTION}.${SERVER_ARGS_SETTING_KEY}'. Expected a string.`,
   );
   return [];
 }

@@ -18,12 +18,9 @@
       "title": "xreferee",
       "properties": {
         "xreferee.serverArgs": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [],
-          "description": "Additional command-line arguments passed to the xreferee language server process.",
+          "type": "string",
+          "default": "",
+          "description": "Additional command-line arguments passed to the xreferee language server process (for example: --flag value).",
           "scope": "resource"
         }
       }
@@ -50,6 +47,7 @@
   "dependencies": {
     "@octokit/rest": "^22.0.1",
     "extract-zip": "^2.0.1",
+    "string-argv": "^0.3.2",
     "tar": "^7.5.13",
     "vscode-languageclient": "^8.1.0"
   }

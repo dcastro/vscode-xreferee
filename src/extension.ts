@@ -15,6 +15,8 @@ const LSP_REPO_OWNER = 'dcastro';
 const LSP_REPO_NAME = 'lsp-xreferee';
 const LOG_CHANNEL_NAME = 'xreferee';
 const LSP_VERSION_FILE_NAME = 'lsp-xreferee-version.txt';
+const EXTENSION_CONFIG_SECTION = 'xreferee';
+const SERVER_ARGS_SETTING_KEY = 'serverArgs';
 const octokitModulePromise = import('@octokit/rest');
 
 let logChannel: vscode.OutputChannel | undefined;
@@ -33,6 +35,7 @@ export async function activate(
 
   // Resolve the language server executable before creating the client.
   let serverCommand: string;
+  const serverArgs = getConfiguredServerArgs();
   try {
     logInfo('Resolving language server executable.');
     serverCommand = await resolveServerCommand(context);
@@ -48,7 +51,7 @@ export async function activate(
 
   const serverOptions: ServerOptions = {
     command: serverCommand,
-    args: [],
+    args: serverArgs,
   };
 
   const clientOptions: LanguageClientOptions = {
@@ -73,6 +76,34 @@ export async function activate(
       void client.stop();
     },
   });
+}
+
+/**
+ * Reads user-configured extra command-line arguments for the language server.
+ */
+function getConfiguredServerArgs(): string[] {
+  const configuredValue = vscode.workspace
+    .getConfiguration(EXTENSION_CONFIG_SECTION)
+    .get<unknown>(SERVER_ARGS_SETTING_KEY, []);
+
+  if (
+    Array.isArray(configuredValue) &&
+    configuredValue.every((value) => typeof value === 'string')
+  ) {
+    logInfo(
+      `Configured ${SERVER_ARGS_SETTING_KEY}: ${JSON.stringify(configuredValue)}`,
+    );
+    return configuredValue;
+  }
+
+  logError(
+    `Invalid setting '${EXTENSION_CONFIG_SECTION}.${SERVER_ARGS_SETTING_KEY}'. Expected an array of strings.`,
+    configuredValue,
+  );
+  void vscode.window.showWarningMessage(
+    `Invalid setting '${EXTENSION_CONFIG_SECTION}.${SERVER_ARGS_SETTING_KEY}'. Expected an array of strings.`,
+  );
+  return [];
 }
 
 /**

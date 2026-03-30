@@ -14,6 +14,7 @@ const LSP_COMMAND = 'lsp-xreferee';
 const LSP_REPO_OWNER = 'dcastro';
 const LSP_REPO_NAME = 'lsp-xreferee';
 const LOG_CHANNEL_NAME = 'xreferee';
+const LSP_VERSION_FILE_NAME = 'lsp-xreferee-version.txt';
 const octokitModulePromise = import('@octokit/rest');
 
 let logChannel: vscode.OutputChannel | undefined;
@@ -171,9 +172,31 @@ async function downloadLatestServerBinary(
   logInfo(`Ensuring install directory exists: ${installDir}`);
   await fs.promises.mkdir(installDir, { recursive: true });
   const localBinaryPath = path.join(installDir, getExecutableName());
+  const versionFilePath = path.join(installDir, LSP_VERSION_FILE_NAME);
+
+  // Fetch latest release metadata and locate the matching asset.
+  const latestRelease = await getLatestRelease();
+  const latestReleaseVersion =
+    typeof latestRelease.tag_name === 'string'
+      ? latestRelease.tag_name
+      : (() => {
+          throw new Error('Latest release is missing a valid release name.');
+        })();
+
   if (isUsableExecutable(localBinaryPath)) {
-    logInfo(`Using previously downloaded executable: ${localBinaryPath}`);
-    return localBinaryPath;
+    const installedVersion = await readInstalledVersion(versionFilePath);
+    // If we have the latest version installed, reuse it.
+    // Otherwise, we'll redownload and replace the binary.
+    if (installedVersion === latestReleaseVersion) {
+      logInfo(
+        `Using previously downloaded executable at version '${installedVersion}': ${localBinaryPath}`,
+      );
+      return localBinaryPath;
+    }
+
+    logInfo(
+      `Installed binary version '${installedVersion ?? 'unknown'}' differs from latest '${latestReleaseVersion}'. Updating binary.`,
+    );
   }
 
   return vscode.window.withProgress(
@@ -182,8 +205,6 @@ async function downloadLatestServerBinary(
       title: 'Downloading lsp-xreferee language server',
     },
     async () => {
-      // Fetch latest release metadata and locate the matching asset.
-      const latestRelease = await getLatestRelease();
       const asset = latestRelease.assets.find(
         (entry) => entry.name === assetName,
       );
@@ -224,7 +245,9 @@ async function downloadLatestServerBinary(
         logInfo(`Replacing previous binary at: ${localBinaryPath}`);
         await fs.promises.rm(localBinaryPath, { force: true });
         await fs.promises.rename(extractedBinaryPath, localBinaryPath);
+        await writeInstalledVersion(versionFilePath, latestReleaseVersion);
         logInfo(`Downloaded executable is ready: ${localBinaryPath}`);
+        logInfo(`Persisted installed version: ${latestReleaseVersion}`);
         return localBinaryPath;
       } catch (error) {
         await fs.promises.rm(tempArchivePath, { force: true });
@@ -240,6 +263,35 @@ async function downloadLatestServerBinary(
       }
     },
   );
+}
+
+/**
+ * Reads the installed binary version from disk.
+ */
+async function readInstalledVersion(
+  versionFilePath: string,
+): Promise<string | undefined> {
+  try {
+    const content = await fs.promises.readFile(versionFilePath, 'utf8');
+    const version = content.trim();
+    return version || undefined;
+  } catch (error) {
+    const maybeError = error as NodeJS.ErrnoException;
+    if (maybeError.code === 'ENOENT') {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Writes the installed binary version to disk.
+ */
+async function writeInstalledVersion(
+  versionFilePath: string,
+  version: string,
+): Promise<void> {
+  await fs.promises.writeFile(versionFilePath, `${version}\n`, 'utf8');
 }
 
 /**
@@ -296,6 +348,8 @@ async function extractArchivePackage(
 
 /**
  * Fetches latest release metadata from GitHub via Octokit.
+ *
+ * curl https://api.github.com/repos/dcastro/lsp-xreferee/releases/latest
  */
 async function getLatestRelease() {
   logInfo(

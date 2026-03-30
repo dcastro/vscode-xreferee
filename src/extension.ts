@@ -89,15 +89,11 @@ async function resolveServerCommand(
     return existingCommand;
   }
 
-  // Fallback to downloading the latest release for the current platform.
-  logInfo('Executable not found in PATH. Downloading latest release binary.');
-  return vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: 'Downloading lsp-xreferee language server',
-    },
-    async () => downloadLatestServerBinary(context),
+  // Fallback to the managed binary path (cached download or fresh download).
+  logInfo(
+    'Executable not found in PATH. Resolving managed language server binary.',
   );
+  return downloadLatestServerBinary(context);
 }
 
 /**
@@ -180,54 +176,70 @@ async function downloadLatestServerBinary(
     return localBinaryPath;
   }
 
-  // Fetch latest release metadata and locate the matching asset.
-  const latestRelease = await getLatestRelease();
-  const asset = latestRelease.assets.find((entry) => entry.name === assetName);
-  if (!asset) {
-    throw new Error(
-      `Latest release does not contain asset '${assetName}' for ${process.platform}/${process.arch}.`,
-    );
-  }
-  logInfo(`Matched release asset: ${asset.name}`);
-
-  // Download archive to a temporary file, extract it, and move the binary into place.
-  const tempArchivePath = path.join(installDir, `${assetName}.download`);
-  const tempExtractDir = path.join(
-    installDir,
-    `extract-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-  );
-  try {
-    logInfo(`Downloading archive to temporary file: ${tempArchivePath}`);
-    await downloadReleaseAsset(asset.id, tempArchivePath);
-
-    logInfo(`Extracting archive to temporary directory: ${tempExtractDir}`);
-    await fs.promises.mkdir(tempExtractDir, { recursive: true });
-    await extractArchivePackage(assetName, tempArchivePath, tempExtractDir);
-
-    const extractedBinaryPath = path.join(tempExtractDir, expectedBinaryName);
-    try {
-      await fs.promises.access(extractedBinaryPath, fs.constants.F_OK);
-    } catch {
-      throw new Error(
-        `Could not find '${expectedBinaryName}' inside extracted archive '${assetName}'.`,
+  return vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: 'Downloading lsp-xreferee language server',
+    },
+    async () => {
+      // Fetch latest release metadata and locate the matching asset.
+      const latestRelease = await getLatestRelease();
+      const asset = latestRelease.assets.find(
+        (entry) => entry.name === assetName,
       );
-    }
-    logInfo(`Found extracted binary: ${extractedBinaryPath}`);
+      if (!asset) {
+        throw new Error(
+          `Latest release does not contain asset '${assetName}' for ${process.platform}/${process.arch}.`,
+        );
+      }
+      logInfo(`Matched release asset: ${asset.name}`);
 
-    logInfo(`Replacing previous binary at: ${localBinaryPath}`);
-    await fs.promises.rm(localBinaryPath, { force: true });
-    await fs.promises.rename(extractedBinaryPath, localBinaryPath);
-    logInfo(`Downloaded executable is ready: ${localBinaryPath}`);
-    return localBinaryPath;
-  } catch (error) {
-    await fs.promises.rm(tempArchivePath, { force: true });
-    await fs.promises.rm(tempExtractDir, { recursive: true, force: true });
-    logError('Failed to download and install language server binary.', error);
-    throw error;
-  } finally {
-    await fs.promises.rm(tempArchivePath, { force: true });
-    await fs.promises.rm(tempExtractDir, { recursive: true, force: true });
-  }
+      // Download archive to a temporary file, extract it, and move the binary into place.
+      const tempArchivePath = path.join(installDir, `${assetName}.download`);
+      const tempExtractDir = path.join(
+        installDir,
+        `extract-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      );
+      try {
+        logInfo(`Downloading archive to temporary file: ${tempArchivePath}`);
+        await downloadReleaseAsset(asset.id, tempArchivePath);
+
+        logInfo(`Extracting archive to temporary directory: ${tempExtractDir}`);
+        await fs.promises.mkdir(tempExtractDir, { recursive: true });
+        await extractArchivePackage(assetName, tempArchivePath, tempExtractDir);
+
+        const extractedBinaryPath = path.join(
+          tempExtractDir,
+          expectedBinaryName,
+        );
+        try {
+          await fs.promises.access(extractedBinaryPath, fs.constants.F_OK);
+        } catch {
+          throw new Error(
+            `Could not find '${expectedBinaryName}' inside extracted archive '${assetName}'.`,
+          );
+        }
+        logInfo(`Found extracted binary: ${extractedBinaryPath}`);
+
+        logInfo(`Replacing previous binary at: ${localBinaryPath}`);
+        await fs.promises.rm(localBinaryPath, { force: true });
+        await fs.promises.rename(extractedBinaryPath, localBinaryPath);
+        logInfo(`Downloaded executable is ready: ${localBinaryPath}`);
+        return localBinaryPath;
+      } catch (error) {
+        await fs.promises.rm(tempArchivePath, { force: true });
+        await fs.promises.rm(tempExtractDir, { recursive: true, force: true });
+        logError(
+          'Failed to download and install language server binary.',
+          error,
+        );
+        throw error;
+      } finally {
+        await fs.promises.rm(tempArchivePath, { force: true });
+        await fs.promises.rm(tempExtractDir, { recursive: true, force: true });
+      }
+    },
+  );
 }
 
 /**

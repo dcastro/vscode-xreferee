@@ -217,9 +217,6 @@ async function downloadLatestServerBinary(
     logInfo(`Replacing previous binary at: ${localBinaryPath}`);
     await fs.promises.rm(localBinaryPath, { force: true });
     await fs.promises.rename(extractedBinaryPath, localBinaryPath);
-    if (process.platform !== 'win32') {
-      await fs.promises.chmod(localBinaryPath, 0o755);
-    }
     logInfo(`Downloaded executable is ready: ${localBinaryPath}`);
     return localBinaryPath;
   } catch (error) {

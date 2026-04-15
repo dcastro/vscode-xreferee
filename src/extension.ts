@@ -337,10 +337,10 @@ function getReleaseAssetNameForRuntime(): string {
     return 'lsp-xreferee-macos-arm64.tar.gz';
   }
   if (process.platform === 'linux' && process.arch === 'x64') {
-    return 'lsp-xreferee-ubuntu-amd64.tar.gz';
+    return 'lsp-xreferee-linux-amd64.tar.gz';
   }
   if (process.platform === 'linux' && process.arch === 'arm64') {
-    return 'lsp-xreferee-ubuntu-arm64.tar.gz';
+    return 'lsp-xreferee-linux-arm64.tar.gz';
   }
   if (process.platform === 'win32' && process.arch === 'x64') {
     return 'lsp-xreferee-windows-amd64.zip';

@@ -5,6 +5,9 @@ default:
 login:
     printf "${VSCODE_ACCESS_TOKEN}\n" | npx @vscode/vsce login dcastro
 
+uninstall-lsp:
+    rm ~/.config/Code/User/globalStorage/dcastro.xreferee/lsp-xreferee
+
 build:
     xrefcheck
     npx @vscode/vsce package

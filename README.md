@@ -43,13 +43,13 @@ const MY_VERSION = 123
 
 ## Features
 
-* Go To Definition: Navigate from a reference to an anchor.
-* Find All References: Navigate from an anchor to its references.
-* Diagnostics: report warnings/errors for unused anchors, duplicate anchors, and broken references.
-* Rename labels, updating all associated anchors/refs.
+* Go To Definition: navigate from a reference to its anchor.
+* Find All References: navigate from an anchor to its references.
+* Diagnostics: reports warnings/errors for unused anchors, duplicate anchors, and broken references.
+* Rename labels, updating all associated anchors/references.
 
 These features are provided by the [xreferee LSP server](https://github.com/dcastro/lsp-xreferee).
-This vscode extension automatically downloads the [latest release](https://github.com/dcastro/lsp-xreferee/releases) if one is not found in the `PATH`.
+This extension automatically downloads the [latest release](https://github.com/dcastro/lsp-xreferee/releases) if the `lsp-xreferee` binary is not found in your `PATH`.
 
 ## Extension Settings
 

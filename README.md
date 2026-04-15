@@ -1,71 +1,71 @@
 # vscode-xreferee
 
-This is the README for your extension "vscode-xreferee". After writing up a brief description, we recommend including the following sections.
+Validate cross references throughout a git repo.
+
+This vscode extension is an adapter for the [xreferee CLI tool](https://github.com/brandonchinn178/xreferee).
+
+## Overview
+
+It's often useful to link two different locations in a codebase, and it might not always be possible to enforce it by importing a common source of truth. Some examples:
+* Keeping two constants in sync across files in two different languages
+* Linking an implementation to markdown files or comments documenting the design
+* Referencing an invariant documented on a field definition at the call-site
+
+See GHC's wiki on how they've found cross references helpful: https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/coding-style#2-using-notes.
+
+You can use this tool to validate that cross references across a repository are valid. For example:
+
+```markdown
+This is a _markdown_ **file** documenting a feature.
+We can mark this as a source of truth with a Markdown comment:
+<!-- #(ref:my-feature) -->
+```
+
+```python
+# In my Python code, add a reference to the markdown document, where
+# you know you can just search for a matching anchor tag
+# See @(ref:my-feature)
+def my_feature():
+    pass
+
+# Maybe the Python file is also the source of truth for a constant:
+# #(ref:my-version-123)
+MY_VERSION = 123
+```
+
+```javascript
+// Then in my Javascript file, we can use a cross reference to ensure they're
+// kept in sync. If the label above is updated to `my-version-124`, then this
+// cross reference will be broken, and xreferee will flag it.
+// @(ref:my-version-123)
+const MY_VERSION = 123
+```
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+* Go To Definition: Navigate from a reference to an anchor.
+* Find All References: Navigate from an anchor to its references.
+* Diagnostics: report warnings/errors for unused anchors, duplicate anchors, and broken references.
+* Rename labels, updating all associated anchors/refs.
 
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+These features are provided by the [xreferee LSP server](https://github.com/dcastro/lsp-xreferee).
+This vscode extension automatically downloads the [latest release](https://github.com/dcastro/lsp-xreferee/releases) if one is not found in the `PATH`.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+This extension contributes the following setting:
 
-For example:
+- `xreferee.serverArgs`: Additional command-line arguments passed to the `lsp-xreferee` process.
 
-This extension contributes the following settings:
+Example:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+```json
+{
+	"xreferee.serverArgs": "--log-file <file>"
+}
+```
 
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+See [CHANGELOG.md](CHANGELOG.md) for release history.

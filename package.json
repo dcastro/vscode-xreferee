@@ -1,13 +1,21 @@
 {
-  "name": "vscode-xreferee",
-  "displayName": "vscode-xreferee",
+  "name": "xreferee",
+  "displayName": "xreferee",
+  "publisher": "dcastro",
   "description": "Validate cross references throughout a git repo.",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dcastro/vscode-xreferee.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dcastro/vscode-xreferee/issues"
+  },
   "engines": {
     "vscode": "^1.109.0"
   },
   "categories": [
-    "Other"
+    "Linters"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -20,7 +28,7 @@
         "xreferee.serverArgs": {
           "type": "string",
           "default": "",
-          "description": "Additional command-line arguments passed to the xreferee language server process (for example: --flag value).",
+          "description": "Additional command-line arguments passed to the xreferee language server process (for example: --log-file <file>).",
           "scope": "resource"
         }
       }

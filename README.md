@@ -2,6 +2,8 @@
 
 Validate cross references throughout a git repo.
 
+Available for download from the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=dcastro.xreferee).
+
 This vscode extension is an adapter for the [xreferee CLI tool](https://github.com/brandonchinn178/xreferee).
 
 ## Overview

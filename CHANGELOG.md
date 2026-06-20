@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## 0.0.2
 
 * Avoid crashing when the workspace is not a git repository.
 

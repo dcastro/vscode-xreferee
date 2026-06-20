@@ -1,9 +1,9 @@
 # Change Log
 
-All notable changes to the "vscode-xreferee" extension will be documented in this file.
+## Unreleased
 
-Check [Keep a Changelog](https://keepachangelog.com/) for recommendations on how to structure this file.
+* Avoid crashing when the workspace is not a git repository.
 
 ## 0.0.1
 
-- Initial release
+* Initial release

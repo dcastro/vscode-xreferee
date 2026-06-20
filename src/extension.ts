@@ -22,6 +22,18 @@ const stringArgvModulePromise = import('string-argv');
 
 let logChannel: vscode.OutputChannel | undefined;
 
+function isGitRepo(cwd: string): boolean {
+  try {
+    execFileSync('git', ['rev-parse', '--git-dir'], {
+      cwd,
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Activates the extension and starts the language client once the server executable is available.
  */
@@ -31,6 +43,12 @@ export async function activate(
   logChannel = vscode.window.createOutputChannel(LOG_CHANNEL_NAME);
   context.subscriptions.push(logChannel);
   logInfo('Extension activation started.');
+
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (!workspaceRoot || !isGitRepo(workspaceRoot)) {
+    logInfo('Not a git repository. Language server will not be started.');
+    return;
+  }
 
   const selector: vscode.DocumentSelector = [{ scheme: 'file' }];
 

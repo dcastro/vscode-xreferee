@@ -21,3 +21,7 @@ build-pre:
 
 publish-pre:
     npx @vscode/vsce publish --pre-release
+
+update-deps:
+    npx npm-check-updates --upgrade
+    npm install

@@ -44,20 +44,20 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
+    "@types/node": "26.x",
     "@types/vscode": "^1.109.0",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2",
-    "esbuild": "^0.25.11",
-    "eslint": "^9.39.3",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1"
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.6.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.62.0"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.1",
     "extract-zip": "^2.0.1",
     "string-argv": "^0.3.2",
-    "tar": "^7.5.13",
-    "vscode-languageclient": "^8.1.0"
+    "tar": "^7.5.17",
+    "vscode-languageclient": "^10.0.1"
   }
 }
